@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Yoco Payment</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script>
+    <link rel="stylesheet" href="" />
+  </head>
+  <body>
+    <form id="payment-form" method="POST">
+      <div class="one-liner">
+        <div id="card-frame">
+          <!-- Yoco Inline form will be added here -->
+        </div>
+        <button id="pay-button">PAY ZAR {{amount}}</button>
+      </div>
+      <p class="success-payment-message" />
+    </form>
+
+    <script>
+      // Replace the supplied `publicKey` with your own.
+      // Ensure that in production you use a production public_key.
+      var sdk = new window.YocoSDK({
+        publicKey: "{{public_key}}",
+      });
+
+      // Create a new dropin form instance
+      var inline = sdk.inline({
+        layout: "basic",
+        amountInCents: "{{amount}}",
+        currency: "ZAR",
+      });
+      // this ID matches the id of the element we created earlier.
+      inline.mount("#card-frame");
+    </script>
+    <script>
+      // Run our code when your form is submitted
+      var form = document.getElementById("payment-form");
+      var submitButton = document.getElementById("pay-button");
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        // Disable the button to prevent multiple clicks while processing
+        submitButton.disabled = true;
+        // This is the inline object we created earlier with the sdk
+        inline
+          .createToken()
+          .then(function (result) {
+            // Re-enable button now that request is complete
+            // (i.e. on success, on error and when auth is cancelled)
+            submitButton.disabled = false;
+            if (result.error) {
+              const errorMessage = result.error.message;
+              errorMessage && alert("error occured: " + errorMessage);
+            } else {
+              const token = result;
+              alert("card successfully tokenised: " + token.id);
+            }
+          })
+          .catch(function (error) {
+            // Re-enable button now that request is complete
+            submitButton.disabled = false;
+            alert("error occured: " + error);
+          });
+      });
+      // Any additional form data you want to submit to your backend should be done here, or in another event listener
+    </script>
+  </body>
+</html>
